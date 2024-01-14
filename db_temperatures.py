@@ -32,66 +32,31 @@ for temp in max_temperatures:
     #   print(temp)
 
 
-
-      
 import sqlite3
-# DBファイルを保存するためのファイルパス
 
-# Google Colab
-# path = '/content/'
+conn = sqlite3.connect('weather_data.db')
 
-# ローカル（自分のMac）
-path = '/Users/furusawasaki/DSPro2/db_temperatures.py'
+conn.execute('''CREATE TABLE IF NOT EXISTS temperatures (
+                date TEXT,
+                max_temperature REAL)''')
 
-# DBファイル名
-db_name = 'temp.sqlite'
+for idx, temp in enumerate(max_temperatures, start=13):
+    # 日付のフォーマットをYYYY-MM-DDにします
+    date = f'2023-12-{idx:02d}'
+    conn.execute('INSERT INTO temperatures (date, max_temperature) VALUES (?, ?)',
+                 (date, float(temp)))
 
-# DBに接続する（指定したDBファイル存在しない場合は，新規に作成される）
-con = sqlite3.connect(path + db_name)
-
-# DBへの接続を閉じる
-con.close()
-
-
-step_data = pd.read_csv('/Users/furusawasaki/DSPro2/step.csv')
-
-# 1．DBに接続する
-con = sqlite3.connect(path + db_name)
-
-# 2．SQLを実行するためのオブジェクトを取得
-cur = con.cursor()
-
-# 3．実行したいSQLを用意する
-# テーブルを作成するSQL
-sql_create_table_temperature = 'CREATE TABLE temp(date int, temperature int, step int);'
-
-# 4．SQLを実行する
-cur.execute(sql_create_table_temperature)
-
-# 5．必要があればコミットする（データ変更等があった場合）
-# 今回はテーブル作成なのでコミットが必要
-con.commit()
-
-# 6．DBへの接続を閉じる
-con.close()
-
-
-# # データベースに接続
-# con = sqlite3.connect(path + db_name)
-# cur = con.cursor()
-
-# for i, row in step_data.iterrows():
-#     date = row['date']  # CSVから日付を取得
-#     step = row['step']  # CSVから歩数を取得
-#     temperature_data = temp[i] if i < len(temp) else None  # 温度データを取得（リストの長さを超えないように）
-
-#     # データを挿入
-#     cur.execute('INSERT INTO temperature (date, temperature, step) VALUES (?, ?, ?)',
-#                 (date, temperature_data, step))
-    
-# # コミットしてデータベースをクローズ
-# con.commit()
-# con.close()
+conn.commit()
+conn.close()
 
 
 
+conn = sqlite3.connect('weather_data.db')
+
+cursor = conn.cursor()
+cursor.execute('SELECT * FROM temperatures')
+rows = cursor.fetchall()
+
+for row in rows:
+    print(row)
+conn.close()
